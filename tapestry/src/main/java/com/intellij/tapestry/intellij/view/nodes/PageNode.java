@@ -1,7 +1,7 @@
 package com.intellij.tapestry.intellij.view.nodes;
 
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClassOwner;
 import com.intellij.tapestry.core.model.presentation.Page;
@@ -21,8 +21,8 @@ import java.util.List;
  */
 public class PageNode extends TapestryNode {
 
-    public PageNode(PresentationLibraryElement page, Module module, AbstractTreeBuilder treeBuilder) {
-        super(module, treeBuilder);
+    public PageNode(PresentationLibraryElement page, Module module) {
+        super(module);
 
         init(page, new PresentationData(page.getElementClass().getName(), page.getName(), TapestryIcons.Page, null));
     }
@@ -35,14 +35,14 @@ public class PageNode extends TapestryNode {
         Page page = (Page) getElement();
         List<SimpleNode> children = new ArrayList<>();
 
-        ClassNode classNode = new ClassNode((PsiClassOwner) ((IntellijJavaClassType) page.getElementClass()).getPsiClass().getContainingFile(), getModule(), _treeBuilder);
+        ClassNode classNode = new ClassNode((PsiClassOwner) ((IntellijJavaClassType) page.getElementClass()).getPsiClass().getContainingFile(), getModule());
         children.add(classNode);
 
         for (IResource template : page.getTemplate())
-            children.add(new FileNode(((IntellijResource) template).getPsiFile(), getModule(), _treeBuilder));
+            children.add(new FileNode(((IntellijResource) template).getPsiFile(), getModule()));
 
         for (IResource catalog : page.getMessageCatalog())
-            children.add(new FileNode(((IntellijResource) catalog).getPsiFile(), getModule(), _treeBuilder));
+            children.add(new FileNode(((IntellijResource) catalog).getPsiFile(), getModule()));
 
         return children.toArray(new SimpleNode[0]);
     }

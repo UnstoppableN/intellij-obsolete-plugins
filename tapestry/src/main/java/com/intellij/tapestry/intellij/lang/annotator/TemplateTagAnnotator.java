@@ -6,6 +6,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -63,6 +64,8 @@ public class TemplateTagAnnotator extends XmlRecursiveElementVisitor implements 
       XmlAttribute attr = TapestryUtils.getIdentifyingAttribute(tag);
       if (attr != null) {
         annotateTapestryAttribute(attr);
+        // Check for unresolved references on the identifying attribute value (t:type, t:id)
+        checkUnresolvedReferences(attr);
       }
 
       TapestryComponent component = TapestryUtils.getTypeOfTag(tag);
@@ -79,6 +82,8 @@ public class TemplateTagAnnotator extends XmlRecursiveElementVisitor implements 
           XmlAttribute attribute = TapestryUtils.getTapestryAttribute(tag, paramName);
           if (attribute == null) continue;
           annotateTapestryAttribute(attribute);
+          // Check for unresolved references on parameter attribute values (e.g., page="somePage")
+          checkUnresolvedReferences(attribute);
           if (elementClass != null) {
             annotateAttributeValue(tapestryProject, elementClass, parameter, attribute);
           }
@@ -88,6 +93,26 @@ public class TemplateTagAnnotator extends XmlRecursiveElementVisitor implements 
 
     tag.acceptChildren(this);
   }//visitXmlTag
+
+  /**
+   * Checks references on an XML attribute value and annotates unresolved non-soft references as errors.
+   * In IntelliJ 2025.3+, the platform no longer automatically highlights unresolved contributed references,
+   * so the plugin must do this explicitly.
+   */
+  private void checkUnresolvedReferences(XmlAttribute attribute) {
+    final AnnotationHolder holder = annotationHolder;
+    if (holder == null) return;
+    final XmlAttributeValue valueElement = attribute.getValueElement();
+    if (valueElement == null) return;
+    for (PsiReference ref : valueElement.getReferences()) {
+      if (!ref.isSoft() && ref.resolve() == null) {
+        holder.newAnnotation(HighlightSeverity.ERROR,
+            "Cannot resolve symbol '" + ref.getCanonicalText() + "'")
+            .range(ref.getRangeInElement().shiftRight(valueElement.getTextRange().getStartOffset()))
+            .create();
+      }
+    }
+  }
 
   private void annotateAttributeValue(TapestryProject tapestryProject,
                                       IntellijJavaClassType elementClass,

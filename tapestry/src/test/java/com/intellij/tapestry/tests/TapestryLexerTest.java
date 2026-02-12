@@ -9,10 +9,13 @@ import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * @author Alexey Chmutov
  */
 public class TapestryLexerTest extends UsefulTestCase {
+  private static final AtomicLong TEST_COUNTER = new AtomicLong();
 
   public void testTemplateNoEL() {
     doTest();
@@ -93,8 +96,9 @@ public class TapestryLexerTest extends UsefulTestCase {
     super.setUp();
 
     // needed for various XML extension points registration
+    String uniqueName = getTestName(false) + "_" + TEST_COUNTER.incrementAndGet();
     myFixture = IdeaTestFixtureFactory.getFixtureFactory()
-      .createLightFixtureBuilder(LightProjectDescriptor.EMPTY_PROJECT_DESCRIPTOR, getTestName(false)).getFixture();
+      .createLightFixtureBuilder(LightProjectDescriptor.EMPTY_PROJECT_DESCRIPTOR, uniqueName).getFixture();
     myFixture.setUp();
   }
 

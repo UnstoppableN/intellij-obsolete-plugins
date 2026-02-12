@@ -4,6 +4,7 @@
   <vendor>JetBrains</vendor>
   <description>Provides advanced code insight features for Tapestry 5.1 framework.</description>
 
+  <depends>com.intellij.java</depends>
   <depends>com.intellij.javaee</depends>
   <depends>com.intellij.properties</depends>
   <depends optional="true" config-file="tapestry-css-support-plugin.xml">com.intellij.css</depends>

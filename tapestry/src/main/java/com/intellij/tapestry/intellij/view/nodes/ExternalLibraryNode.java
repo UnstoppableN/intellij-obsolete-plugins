@@ -2,7 +2,7 @@ package com.intellij.tapestry.intellij.view.nodes;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -16,8 +16,8 @@ import java.util.List;
 
 public class ExternalLibraryNode extends TapestryNode {
 
-    public ExternalLibraryNode(TapestryLibrary library, Module module, AbstractTreeBuilder treeBuilder) {
-        super(module, treeBuilder);
+    public ExternalLibraryNode(TapestryLibrary library, Module module) {
+        super(module);
 
         init(library, new PresentationData(library.getId(), library.getId(), AllIcons.Nodes.PpLib, null));
     }
@@ -36,7 +36,7 @@ public class ExternalLibraryNode extends TapestryNode {
                     new PagesNode(
                             library,
                             JavaPsiFacade.getInstance(myProject).findPackage(library.getBasePackage() + "." + TapestryConstants.PAGES_PACKAGE)
-                                    .getDirectories(GlobalSearchScope.moduleWithLibrariesScope(_module))[0], _module, _treeBuilder
+                                    .getDirectories(GlobalSearchScope.moduleWithLibrariesScope(_module))[0], _module
                     )
             );
         }
@@ -46,7 +46,7 @@ public class ExternalLibraryNode extends TapestryNode {
                     new ComponentsNode(
                             library,
                             JavaPsiFacade.getInstance(myProject).findPackage(library.getBasePackage() + "." + TapestryConstants.COMPONENTS_PACKAGE)
-                                    .getDirectories(GlobalSearchScope.moduleWithLibrariesScope(_module))[0], _module, _treeBuilder
+                                    .getDirectories(GlobalSearchScope.moduleWithLibrariesScope(_module))[0], _module
                     )
             );
         }
@@ -56,7 +56,7 @@ public class ExternalLibraryNode extends TapestryNode {
                     new MixinsNode(
                             library,
                             JavaPsiFacade.getInstance(myProject).findPackage(library.getBasePackage() + "." + TapestryConstants.MIXINS_PACKAGE)
-                                    .getDirectories(GlobalSearchScope.moduleWithLibrariesScope(_module))[0], _module, _treeBuilder
+                                    .getDirectories(GlobalSearchScope.moduleWithLibrariesScope(_module))[0], _module
                     )
             );
         }

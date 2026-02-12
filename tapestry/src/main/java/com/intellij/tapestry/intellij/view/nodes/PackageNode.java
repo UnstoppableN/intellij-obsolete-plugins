@@ -1,7 +1,7 @@
 package com.intellij.tapestry.intellij.view.nodes;
 
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
+
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.*;
@@ -26,16 +26,16 @@ public class PackageNode extends TapestryNode {
 
     private final TapestryLibrary _library;
 
-    public PackageNode(TapestryLibrary library, PsiDirectory psiDirectory, Module module, AbstractTreeBuilder treeBuilder) {
-        super(module, treeBuilder);
+    public PackageNode(TapestryLibrary library, PsiDirectory psiDirectory, Module module) {
+        super(module);
         _library = library;
 
         init(psiDirectory, new PresentationData(psiDirectory.getName(), psiDirectory.getName(),
                                                 PlatformIcons.PACKAGE_ICON, null));
     }
 
-    public PackageNode(PsiDirectory psiDirectory, Module module, AbstractTreeBuilder treeBuilder) {
-        this(null, psiDirectory, module, treeBuilder);
+    public PackageNode(PsiDirectory psiDirectory, Module module) {
+        this(null, psiDirectory, module);
     }
 
     /**
@@ -75,26 +75,26 @@ public class PackageNode extends TapestryNode {
 
                     switch (element.getElementType()) {
                         case PAGE:
-                            children.add(new PageNode(element, _module, _treeBuilder));
+                            children.add(new PageNode(element, _module));
                             break;
                         case COMPONENT:
-                            children.add(new ComponentNode(element, _module, _treeBuilder));
+                            children.add(new ComponentNode(element, _module));
                             break;
                         case MIXIN:
-                            children.add(new MixinNode(element, _module, _treeBuilder));
+                            children.add(new MixinNode(element, _module));
                             break;
                     }
                 } catch (NotTapestryElementException e) {
-                    children.add(new ClassNode((PsiClassOwner)psiFile, _module, _treeBuilder));
+                    children.add(new ClassNode((PsiClassOwner)psiFile, _module));
                 }
             }
 
             if (psiFile.getFileType().equals(TmlFileType.INSTANCE) && !TapestryProjectViewPane.getInstance(myProject).isGroupElementFiles()) {
-                children.add(new FileNode(psiFile, _module, _treeBuilder));
+                children.add(new FileNode(psiFile, _module));
             }
 
             if (psiFile.getFileType().equals(PropertiesFileType.INSTANCE) && !TapestryProjectViewPane.getInstance(myProject).isGroupElementFiles()) {
-                children.add(new FileNode(psiFile, _module, _treeBuilder));
+                children.add(new FileNode(psiFile, _module));
             }
         }
 
@@ -110,18 +110,18 @@ public class PackageNode extends TapestryNode {
     String applicationRootPackage = tapestryProject.getApplicationRootPackage();
     String packageName = aPackage.getQualifiedName();
     if (packageName.equals(applicationRootPackage)) {
-      return new LibraryNode(tapestryProject.getApplicationLibrary(), psiDirectory, _module, _treeBuilder);
+      return new LibraryNode(tapestryProject.getApplicationLibrary(), psiDirectory, _module);
     }
     if (packageName.equals(tapestryProject.getPagesRootPackage())) {
-      return new PagesNode(psiDirectory, _module, _treeBuilder);
+      return new PagesNode(psiDirectory, _module);
     }
     if (packageName.equals(tapestryProject.getComponentsRootPackage())) {
-      return new ComponentsNode(psiDirectory, _module, _treeBuilder);
+      return new ComponentsNode(psiDirectory, _module);
     }
     if (packageName.equals(tapestryProject.getMixinsRootPackage())) {
-      return new MixinsNode(psiDirectory, _module, _treeBuilder);
+      return new MixinsNode(psiDirectory, _module);
     }
 
-    return new PackageNode(psiDirectory, _module, _treeBuilder);
+    return new PackageNode(psiDirectory, _module);
   }
 }

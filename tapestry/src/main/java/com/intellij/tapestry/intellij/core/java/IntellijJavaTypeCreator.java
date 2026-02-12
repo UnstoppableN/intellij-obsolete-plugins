@@ -8,6 +8,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.codeStyle.VariableKind;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.ClassUtil;
 import com.intellij.tapestry.core.java.IJavaAnnotation;
 import com.intellij.tapestry.core.java.IJavaClassType;
@@ -106,8 +107,14 @@ public class IntellijJavaTypeCreator implements IJavaTypeCreator {
 
         String packageName = ClassUtil.extractPackageName(type.getFullyQualifiedName());
         if (packageName.equals("java.lang")) {
-            if (ImportUtils.hasOnDemandImportConflict(type.getFullyQualifiedName(),
-                                                      ((IntellijJavaClassType) baseClass).getPsiClass().getContainingFile())) {
+            // For java.lang classes, only import if there's a naming conflict
+            // Since hasOnDemandImportConflict is deprecated and no direct replacement exists,
+            // we check if the simple name would conflict with existing imports
+            String simpleName = ClassUtil.extractClassName(type.getFullyQualifiedName());
+            PsiClass[] classesByName = JavaPsiFacade.getInstance(_module.getProject())
+                .findClasses(simpleName, GlobalSearchScope.allScope(_module.getProject()));
+            
+            if (classesByName.length > 1) {
 
                 IdeaUtils.runWriteCommand(
                   null, () -> {

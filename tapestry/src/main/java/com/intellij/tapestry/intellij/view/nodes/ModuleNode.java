@@ -1,6 +1,6 @@
 package com.intellij.tapestry.intellij.view.nodes;
 
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleFileIndex;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -20,8 +20,8 @@ import java.util.TreeSet;
  */
 public class ModuleNode extends AbstractModuleNode {
 
-    public ModuleNode(@NotNull final Module module, final AbstractTreeBuilder treeBuilder) {
-        super(module, treeBuilder);
+    public ModuleNode(@NotNull final Module module) {
+        super(module);
     }
 
     /**
@@ -41,11 +41,11 @@ public class ModuleNode extends AbstractModuleNode {
                   if (TapestryProjectViewPane.getInstance(myProject).isFromBasePackage()) {
                     if (aPackage.getName() != null && aPackage.getQualifiedName()
                             .equals(TapestryModuleSupportLoader.getTapestryProject(_module).getApplicationLibrary().getBasePackage())) {
-                        children.add(new LibraryNode(TapestryModuleSupportLoader.getTapestryProject(_module).getApplicationLibrary(), psiDirectory, _module, _treeBuilder));
+                        children.add(new LibraryNode(TapestryModuleSupportLoader.getTapestryProject(_module).getApplicationLibrary(), psiDirectory, _module));
                     }
                   } else if (aPackage.getName() != null
                           && (aPackage.getParentPackage() == null || aPackage.getParentPackage().getName() == null)) {
-                      children.add(new PackageNode(PsiManager.getInstance(myProject).findDirectory(virtualfile), (Module) getElement(), _treeBuilder));
+                      children.add(new PackageNode(PsiManager.getInstance(myProject).findDirectory(virtualfile), (Module) getElement()));
                   }
               }
               return true;
@@ -53,7 +53,7 @@ public class ModuleNode extends AbstractModuleNode {
         );
 
         if (TapestryProjectViewPane.getInstance(myProject).isShowLibraries()) {
-            children.add(new LibrariesNode(_module, _treeBuilder));
+            children.add(new LibrariesNode(_module));
         }
 
         return children.toArray(new TapestryNode[0]);

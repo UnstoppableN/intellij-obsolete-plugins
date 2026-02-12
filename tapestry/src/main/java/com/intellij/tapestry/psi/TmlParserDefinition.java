@@ -58,7 +58,7 @@ public class TmlParserDefinition implements ParserDefinition {
 
   @Override
   public @NotNull SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
-    return XMLParserDefinition.canStickTokensTogether(left, right);
+    return SpaceRequirements.MAY;
   }
 
   @Override

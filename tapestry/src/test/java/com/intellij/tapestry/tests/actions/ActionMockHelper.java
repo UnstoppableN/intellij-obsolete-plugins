@@ -11,6 +11,7 @@ import com.intellij.tapestry.intellij.facet.TapestryFacet;
 import com.intellij.tapestry.intellij.facet.TapestryFacetConfiguration;
 import com.intellij.tapestry.intellij.facet.TapestryFacetType;
 import org.easymock.EasyMock;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.InputEvent;
 import java.util.ArrayList;
@@ -55,7 +56,10 @@ public class ActionMockHelper {
 
       Presentation _presentation = new Presentation();
 
-        _event = new AnActionEvent(_inputEventMock, _dataContextMock, "", _presentation, ActionManager.getInstance(), 0);
+        _event = AnActionEvent.createFromAnAction(new AnAction() {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {}
+        }, _inputEventMock, "", _dataContextMock);
     }
 
     public AnActionEvent getEventMock() {
@@ -95,7 +99,7 @@ public class ActionMockHelper {
     }
 
     public void addDataContext(String key, Object value) {
-        expect(_dataContextMock.getData(key)).andReturn(value).anyTimes();
+        expect(_dataContextMock.getData(DataKey.create(key))).andReturn(value).anyTimes();
     }
 
     public void setModuleAsTapestryModule() {

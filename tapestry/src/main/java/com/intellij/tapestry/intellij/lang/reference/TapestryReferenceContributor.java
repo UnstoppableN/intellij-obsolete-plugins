@@ -187,7 +187,7 @@ public class TapestryReferenceContributor extends PsiReferenceContributor {
     TapestryComponent component = TapestryUtils.getTypeOfTag(tag);
     final IntellijJavaClassType elementClass = component == null ? null : (IntellijJavaClassType)component.getElementClass();
 
-    return new PsiReference[]{new PsiReferenceBase<PsiElement>(attributeValue, range) {
+    return new PsiReference[]{new PsiReferenceBase<PsiElement>(attributeValue, range, false) {
       @Override
       @Nullable
       public PsiElement resolve() {
@@ -207,7 +207,7 @@ public class TapestryReferenceContributor extends PsiReferenceContributor {
     final XmlTag tag = parentTag(attr);
     final IntellijJavaField field = (IntellijJavaField)TapestryUtils.findIdentifyingField(tag);
 
-    return new PsiReference[]{new PsiReferenceBase<PsiElement>(attr, range) {
+    return new PsiReference[]{new PsiReferenceBase<PsiElement>(attr, range, false) {
       @Override
       @Nullable
       public PsiElement resolve() {
@@ -225,7 +225,7 @@ public class TapestryReferenceContributor extends PsiReferenceContributor {
   private static PsiReference @NotNull [] getReferenceByComponentId(@NotNull final XmlAttributeValue attrValue, TextRange range) {
     if (range == null) return PsiReference.EMPTY_ARRAY;
 
-    return new PsiReference[]{new PsiReferenceBase<PsiElement>(attrValue, range) {
+    return new PsiReference[]{new PsiReferenceBase<PsiElement>(attrValue, range, false) {
       @Override
       @Nullable
       public PsiElement resolve() {
@@ -240,7 +240,7 @@ public class TapestryReferenceContributor extends PsiReferenceContributor {
 
     final Page page = component.getProject().findPage(pageAttrValue.getValue());
 
-    return new PsiReference[]{new PsiReferenceBase<PsiElement>(pageAttrValue, range) {
+    return new PsiReference[]{new PsiReferenceBase<PsiElement>(pageAttrValue, range, false) {
       @Override
       @Nullable
       public PsiElement resolve() {

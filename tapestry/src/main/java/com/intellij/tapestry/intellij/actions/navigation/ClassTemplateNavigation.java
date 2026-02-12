@@ -53,10 +53,17 @@ public class ClassTemplateNavigation extends AnAction {
 
     PsiFile psiFile = getEventPsiFile(event);
 
-    if (psiFile == null ||
-        !psiFile.getFileType().equals(TmlFileType.INSTANCE) && "Tapestry Class".equals(event.getPresentation().getText())) {
+    if (psiFile == null) {
       presentation.setEnabled(false);
       return;
+    }
+
+    // "Tapestry Class" action should only be enabled when in a TML file
+    if ("Tapestry Class".equals(event.getPresentation().getText())) {
+      if (!psiFile.getFileType().equals(TmlFileType.INSTANCE)) {
+        presentation.setEnabled(false);
+        return;
+      }
     }
 
     presentation.setEnabledAndVisible(true);
@@ -76,13 +83,36 @@ public class ClassTemplateNavigation extends AnAction {
 
     PsiFile psiFile = getEventPsiFile(event);
     Module module = event.getData(PlatformCoreDataKeys.MODULE);
-    if (psiFile == null || module == null) return;
+    
+    // Debug logging
+    if (psiFile == null) {
+      com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+        .warn("Navigation failed: psiFile is null");
+      return;
+    }
+    if (module == null) {
+      com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+        .warn("Navigation failed: module is null for file: " + psiFile.getName());
+      return;
+    }
+    
     String presentationText = event.getPresentation().getText();
+    com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+      .info("Navigation attempt - File: " + psiFile.getName() + 
+            ", FileType: " + psiFile.getFileType() + 
+            ", Action: " + presentationText + 
+            ", Module: " + module.getName());
+    
     VirtualFile navigationTarget = findNavigationTarget(psiFile, module, presentationText);
+    
     if (navigationTarget != null) {
+      com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+        .info("Navigation target found: " + navigationTarget.getPath());
       FileEditorManager.getInstance(project).openFile(navigationTarget, true);
     }
     else {
+      com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+        .warn("Navigation target not found for: " + psiFile.getName());
       showCantNavigateMessage();
     }
   }
@@ -90,7 +120,13 @@ public class ClassTemplateNavigation extends AnAction {
   @Nullable
   public static VirtualFile findNavigationTarget(@NotNull PsiFile psiFile, @NotNull Module module, String presentationText) {
     final TapestryProject project = TapestryModuleSupportLoader.getTapestryProject(module);
-    if (project == null) return null;
+    
+    if (project == null) {
+      com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+        .warn("TapestryProject is null for module: " + module.getName());
+      return null;
+    }
+    
     if (psiFile instanceof PsiClassOwner && presentationText.equals("Class <-> Template Navigation")) {
       PsiClass psiClass = IdeaUtils.findPublicClass(psiFile);
       if (psiClass == null) return null;
@@ -104,11 +140,31 @@ public class ClassTemplateNavigation extends AnAction {
 
     if (psiFile.getFileType().equals(TmlFileType.INSTANCE) &&
         (presentationText.equals("Class <-> Template Navigation") || presentationText.equals("Tapestry Class"))) {
+      
+      com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+        .info("Looking for template element for: " + psiFile.getName() + " in project");
+      
       final PresentationLibraryElement template = project.findElementByTemplate(psiFile);
-      if (template == null) return null;
+      
+      if (template == null) {
+        com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+          .warn("findElementByTemplate returned null for: " + psiFile.getName() + 
+                ", path: " + psiFile.getVirtualFile().getPath());
+        return null;
+      }
+      
+      com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+        .info("Template element found: " + template);
+      
       IJavaClassType elementClass = template.getElementClass();
+      
       if (elementClass != null) {
+        com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+          .info("Element class found: " + elementClass);
         return ((IntellijJavaClassType)elementClass).getPsiClass().getContainingFile().getVirtualFile();
+      } else {
+        com.intellij.openapi.diagnostic.Logger.getInstance(ClassTemplateNavigation.class)
+          .warn("Element class is null for template: " + template);
       }
     }
     return null;

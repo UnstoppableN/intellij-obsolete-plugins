@@ -102,8 +102,11 @@ public class IntellijJavaClassType extends IntellijJavaType implements IJavaClas
   public Collection<IJavaMethod> getPublicMethods(boolean fromSuper) {
     Collection<IJavaMethod> foundMethods = new ArrayList<>();
 
+    PsiClass psiClass = getPsiClass();
+    if (psiClass == null) return foundMethods;
+
     for (PsiMethod method : getMethods(fromSuper)) {
-      if (method.getModifierList().hasExplicitModifier(PsiModifier.PUBLIC) && isNotMethodOfJavaLangObject(method)) {
+      if (method.getModifierList().hasModifierProperty(PsiModifier.PUBLIC) && isNotMethodOfJavaLangObject(method)) {
         foundMethods.add(new IntellijJavaMethod(_module, method));
       }
     }
@@ -112,7 +115,11 @@ public class IntellijJavaClassType extends IntellijJavaType implements IJavaClas
   }
 
   private boolean isNotMethodOfJavaLangObject(PsiMethod method) {
-    return !method.getContainingClass().getQualifiedName().equals(CommonClassNames.JAVA_LANG_OBJECT);
+    PsiClass containingClass = method.getContainingClass();
+    if (containingClass == null) return true;
+    String qualifiedName = containingClass.getQualifiedName();
+    if (qualifiedName == null) return true;
+    return !qualifiedName.equals(CommonClassNames.JAVA_LANG_OBJECT);
   }
 
   private PsiMethod[] getMethods(boolean fromSuper) {

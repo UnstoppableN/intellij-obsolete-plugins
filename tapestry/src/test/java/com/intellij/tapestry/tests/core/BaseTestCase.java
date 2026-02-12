@@ -3,11 +3,9 @@ package com.intellij.tapestry.tests.core;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.tapestry.tests.Util;
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.DataProvider;
 
@@ -36,18 +34,7 @@ public class BaseTestCase {
     @DataProvider(name = JAVA_MODULE_FIXTURE_PROVIDER)
     public Object[][] createJavaModuleFixtureData() throws Exception {
         if (_javaModuleFixture == null) {
-            TestFixtureBuilder<IdeaProjectTestFixture> fixtureBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getClass().getSimpleName());
-            JavaModuleFixtureBuilder javaBuilder = fixtureBuilder.addModule(JavaModuleFixtureBuilder.class);
-            javaBuilder.addContentRoot(new File("").getAbsoluteFile() + "/src/test/javaModule");
-            javaBuilder.addSourceRoot("src");
-            String sdkPath = System.getProperty("jdk.home");
-            if (sdkPath != null) {
-                javaBuilder.addJdk(sdkPath);
-            }
-            javaBuilder.addLibrary("library1");
-            javaBuilder.addLibraryJars("library1", "", new File("").getAbsoluteFile() + "/src/test/javaModule/lib/dep1.jar");
-
-            _javaModuleFixture = fixtureBuilder.getFixture();
+            _javaModuleFixture = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getClass().getSimpleName()).getFixture();
             _javaModuleFixture.setUp();
         }
 

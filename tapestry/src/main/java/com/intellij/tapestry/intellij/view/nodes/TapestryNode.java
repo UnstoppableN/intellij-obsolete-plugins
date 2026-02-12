@@ -1,6 +1,5 @@
 package com.intellij.tapestry.intellij.view.nodes;
 
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -11,16 +10,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class TapestryNode extends SimpleNode {
 
-    protected final AbstractTreeBuilder _treeBuilder;
     protected Module _module;
     protected Object _element;
     protected ItemPresentation _presentation;
 
-    public TapestryNode(@NotNull final Module module, @NotNull final AbstractTreeBuilder treeBuilder) {
+    public TapestryNode(@NotNull final Module module) {
         super(module.getProject());
-
         _module = module;
-        _treeBuilder = treeBuilder;
     }
 
     /**
@@ -63,11 +59,9 @@ public abstract class TapestryNode extends SimpleNode {
     /**
      * {@inheritDoc}
      */
-    @Override
     protected void doUpdate() {
         _presentation = updatePresentation(_presentation);
         setIcon(_presentation.getIcon(false));
-        setPlainText(_presentation.getPresentableText());
     }
 
     /**

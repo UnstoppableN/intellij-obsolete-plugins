@@ -3,8 +3,9 @@ package com.intellij.tapestry.tests;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -14,20 +15,24 @@ import com.intellij.tapestry.intellij.TapestryModuleSupportLoader;
 import com.intellij.tapestry.intellij.facet.TapestryFacet;
 import com.intellij.tapestry.intellij.facet.TapestryFacetType;
 import com.intellij.tapestry.intellij.util.TapestryUtils;
+import com.intellij.testFramework.IdeaTestUtil;
+import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
+import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl;
 import junit.framework.Assert;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Alexey Chmutov
  */
 public abstract class TapestryBaseTestCase extends UsefulTestCase {
+  private static final AtomicLong TEST_COUNTER = new AtomicLong();
   static final String TEST_APPLICATION_PACKAGE = "com.testapp";
   static final String COMPONENTS = "components";
   static final String ABSTRACT_COMPONENTS = "base";
@@ -49,24 +54,43 @@ public abstract class TapestryBaseTestCase extends UsefulTestCase {
   protected CodeInsightTestFixture myFixture;
   protected Module myModule;
 
-  protected Class<? extends JavaModuleFixtureBuilder> getModuleFixtureBuilderClass() {
-    return JavaModuleFixtureBuilder.class;
-  }
+
+
+  /**
+   * Project descriptor that uses the internal JDK (the JDK running the tests) instead of the mock JDK.
+   * The mock JDK only includes a minimal set of classes (no java.util.Date, etc.), which causes
+   * type resolution failures in tests that depend on JDK classes for property/method resolution.
+   */
+  private static final LightProjectDescriptor TAPESTRY_DESCRIPTOR = new DefaultLightProjectDescriptor() {
+    @Override
+    public Sdk getSdk() {
+      String jdkHome = System.getProperty("java.home");
+      return JavaSdk.getInstance().createJdk("Real JDK", jdkHome, false);
+    }
+  };
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
-    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = JavaTestFixtureFactory.createFixtureBuilder(getName());
-    JavaModuleFixtureBuilder moduleBuilder = projectBuilder.addModule(getModuleFixtureBuilderClass());
-    myFixture = IdeaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+    // Use unique name for each test to avoid SymbolicIdAlreadyExistsException in IntelliJ 2025.3
+    String uniqueTestName = getName() + "_" + TEST_COUNTER.incrementAndGet();
+    IdeaProjectTestFixture projectFixture = IdeaTestFixtureFactory.getFixtureFactory()
+        .createLightFixtureBuilder(TAPESTRY_DESCRIPTOR, uniqueTestName).getFixture();
+    // Use LightTempDirTestFixtureImpl (in-memory VFS) so files are created under temp:///src
+    // which is the source root set up by DefaultLightProjectDescriptor. Without this,
+    // JavaPsiFacade.findPackage() can't find packages because disk-based temp dirs aren't source roots.
+    myFixture = IdeaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture,
+        new LightTempDirTestFixtureImpl(true));
     myFixture.setTestDataPath(getTestDataPath());
-    configureModule(moduleBuilder);
 
     myFixture.setUp();
-    myModule = moduleBuilder.getFixture().getModule();
-
-    createFacet();
+    myModule = myFixture.getModule();
+    
+    if (myModule != null) {
+      configureModule();
+      createFacet();
+    }
   }
 
   @Override
@@ -88,7 +112,16 @@ public abstract class TapestryBaseTestCase extends UsefulTestCase {
     return WriteCommandAction.runWriteCommandAction(myFixture.getProject(), (Computable<TapestryFacet>)() -> {
         final TapestryFacetType facetType = TapestryFacetType.getInstance();
         final FacetManager facetManager = FacetManager.getInstance(myModule);
-        final TapestryFacet facet = facetManager.addFacet(facetType, facetType.getPresentableName(), null);
+        
+        // In IntelliJ 2025.3, the workspace model logs an error if a facet with the same symbolic ID
+        // already exists. Check and reuse existing facet to avoid this.
+        TapestryFacet existingFacet = facetManager.getFacetByType(TapestryFacetType.ID);
+        final TapestryFacet facet;
+        if (existingFacet != null) {
+          facet = existingFacet;
+        } else {
+          facet = facetManager.addFacet(facetType, facetType.getPresentableName(), null);
+        }
         facet.getConfiguration().setApplicationPackage(TEST_APPLICATION_PACKAGE);
         Assert.assertNotNull(facetManager.getFacetByType(TapestryFacetType.ID));
         Assert.assertTrue("Not Tapestry module", TapestryUtils.isTapestryModule(myModule));
@@ -101,17 +134,24 @@ public abstract class TapestryBaseTestCase extends UsefulTestCase {
       });
   }
 
-  protected void configureModule(JavaModuleFixtureBuilder moduleBuilder) {
-    moduleBuilder.addContentRoot(myFixture.getTempDirPath());
-    moduleBuilder.addSourceRoot("");
-    moduleBuilder.setMockJdkLevel(JavaModuleFixtureBuilder.MockJdkLevel.jdk15);
-    addTapestryLibraries(moduleBuilder);
+  protected void configureModule() {
+    addTapestryLibraries();
   }
 
-  protected void addTapestryLibraries(final JavaModuleFixtureBuilder moduleBuilder) {
-    moduleBuilder.addLibraryJars("tapestry_5.1.0.5", Util.getCommonTestDataPath() + "libs", "antlr-runtime-3.1.1.jar", "commons-codec.jar",
-                                 "javassist.jar", "log4j.jar", "slf4j-api.jar", "slf4j-log4j12.jar", "stax2.jar",
-                                 "tapestry5-annotations.jar", "tapestry-core.jar", "tapestry-ioc.jar", "wstx-asl.jar");
+  protected void addTapestryLibraries() {
+    myFixture.addFileToProject("dummy.txt", "");
+    // Add Tapestry library JARs to the module classpath so annotations like @Parameter are resolved
+    String libPath = Util.getCommonTestDataPath() + "libs/";
+    File libDir = new File(libPath);
+    if (libDir.exists()) {
+      File[] jars = libDir.listFiles((dir, name) -> name.endsWith(".jar"));
+      if (jars != null) {
+        for (File jar : jars) {
+          com.intellij.testFramework.PsiTestUtil.addLibrary(
+            myModule, jar.getAbsolutePath());
+        }
+      }
+    }
   }
 
   protected String getElementTagName() {
@@ -181,10 +221,8 @@ public abstract class TapestryBaseTestCase extends UsefulTestCase {
       myFixture.allowTreeAccessForFile(destFile);
     }
     else {
-      addFileAndAllowTreeAccess(targetPath,
+      destFile = addFileAndAllowTreeAccess(targetPath,
                                 "package " + TEST_APPLICATION_PACKAGE + "." + COMPONENTS + "; public class " + getElementName() + " {}");
-      File ioFile = new File(myFixture.getTempDirPath() + "/" + targetPath);
-      destFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioFile);
     }
     Assert.assertNotNull(destFile);
     return destFile;

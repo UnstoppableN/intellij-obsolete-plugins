@@ -20,7 +20,7 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.actions.CollapseAllAction;
 import com.intellij.ui.treeStructure.actions.ExpandAllAction;
-import icons.JavaUltimateIcons;
+import com.intellij.java.ultimate.icons.JavaUltimateIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -197,6 +197,11 @@ public class DependenciesTab {
             super("Navigate to Element", "Navigate to the selected element class", AllIcons.Actions.PreviousOccurence);
         }
 
+        @Override
+        public @NotNull ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.BGT;
+        }
+
         /**
          * {@inheritDoc}
          */
@@ -233,6 +238,11 @@ public class DependenciesTab {
 
         NavigateToUsageAction() {
             super("Navigate to Usage", "Navigate to part of code where the selected element is used", JavaUltimateIcons.Javaee.EjbReference);
+        }
+
+        @Override
+        public @NotNull ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.BGT;
         }
 
         /**

@@ -18,25 +18,19 @@ public class TmlTypedHandler extends TypedHandlerDelegate {
     if(!CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET) return Result.CONTINUE;
     PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
     final int offset = editor.getCaretModel().getOffset();
-    final PsiElement elementAt = file.findElementAt(offset - 1);
+    final int index = offset - 2;
+    if (index < 0) return Result.CONTINUE;
 
-    if (elementAt != null) {
-      PsiElement parent = elementAt.getParent();
-      final int index = offset - 2;
-      
-      if (index >= 0) {
-        final CharSequence charSequence = editor.getDocument().getCharsSequence();
+    final CharSequence charSequence = editor.getDocument().getCharsSequence();
+    if (charSequence.length() <= index) return Result.CONTINUE;
 
-        if(charSequence.length() > index) {
+    // Check if the character before '{' is '$'
+    if (charSequence.charAt(index) != '$') return Result.CONTINUE;
 
-        if (charSequence.charAt(index) == '$' && parent != null && parent.getNode().getElementType() != TelTokenTypes.TAP5_EL_HOLDER) {
-          editor.getDocument().insertString(offset, "}");
-          return Result.STOP;
-        }
-        }
-      }
-    }
+    // Check if there's already a closing '}' right after the caret
+    if (offset < charSequence.length() && charSequence.charAt(offset) == '}') return Result.CONTINUE;
 
-    return Result.CONTINUE;
+    editor.getDocument().insertString(offset, "}");
+    return Result.STOP;
   }
 }

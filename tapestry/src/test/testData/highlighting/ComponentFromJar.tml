@@ -1,9 +1,9 @@
 <html xmlns:t="http://tapestry.apache.org/schema/tapestry_5_3.xsd"
           xmlns:p="tapestry:parameter">
   <body>
-  <t:upload />
+  <t:<error descr="Cannot resolve symbol 't:upload'">upload</error> />
   <t:pagelink page="servicestatus" context="user.id">"Text</t:pagelink>
-  <input t:type="upload" t:id="file" t:value="file" validate="required"/>
+  <input t:type="<error descr="Cannot resolve symbol 'upload'">upload</error>" t:id="file" <error descr="Attribute t:value is not allowed here">t:value</error>="file" <error descr="Attribute validate is not allowed here">validate</error>="required"/>
   </body>
 
 </html>

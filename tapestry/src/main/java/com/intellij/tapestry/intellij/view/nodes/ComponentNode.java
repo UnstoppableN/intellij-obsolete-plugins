@@ -1,7 +1,7 @@
 package com.intellij.tapestry.intellij.view.nodes;
 
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClassOwner;
 import com.intellij.tapestry.core.model.presentation.TapestryComponent;
@@ -21,8 +21,8 @@ import java.util.List;
  */
 public class ComponentNode extends TapestryNode {
 
-    public ComponentNode(PresentationLibraryElement component, Module module, AbstractTreeBuilder treeBuilder) {
-        super(module, treeBuilder);
+    public ComponentNode(PresentationLibraryElement component, Module module) {
+        super(module);
 
         init(component, new PresentationData(component.getElementClass().getName(), component.getElementClass().getName(),
                                              TapestryIcons.Component, null));
@@ -36,14 +36,14 @@ public class ComponentNode extends TapestryNode {
         TapestryComponent component = (TapestryComponent) getElement();
         List<SimpleNode> children = new ArrayList<>();
 
-        ClassNode classNode = new ClassNode((PsiClassOwner) ((IntellijJavaClassType) component.getElementClass()).getPsiClass().getContainingFile(), getModule(), _treeBuilder);
+        ClassNode classNode = new ClassNode((PsiClassOwner) ((IntellijJavaClassType) component.getElementClass()).getPsiClass().getContainingFile(), getModule());
         children.add(classNode);
 
         for (IResource template : component.getTemplate())
-            children.add(new FileNode(((IntellijResource) template).getPsiFile(), getModule(), _treeBuilder));
+            children.add(new FileNode(((IntellijResource) template).getPsiFile(), getModule()));
 
         for (IResource catalog : component.getMessageCatalog())
-            children.add(new FileNode(((IntellijResource) catalog).getPsiFile(), getModule(), _treeBuilder));
+            children.add(new FileNode(((IntellijResource) catalog).getPsiFile(), getModule()));
 
         return children.toArray(new SimpleNode[0]);
     }

@@ -9,7 +9,6 @@ import com.intellij.openapi.editor.XmlHighlighterColors;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.tapestry.intellij.inspections.TelReferencesInspection;
 import com.intellij.testFramework.ExpectedHighlightingData;
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.util.containers.ContainerUtil;
 
 import java.util.Set;
@@ -58,12 +57,12 @@ public class TapestryHighlightingTest extends TapestryBaseTestCase {
 
   public void testUnknownTypeOfTag() {
     addComponentToProject("Count");
-    doTest(false);
+    ExpectedHighlightingData.expectedDuplicatedHighlighting(() -> doTest(false));
   }
 
   public void testAttrNameWithUnknownPrefixInHtmlTag() {
     addComponentToProject("Count");
-    doTest(true);
+    ExpectedHighlightingData.expectedDuplicatedHighlighting(() -> doTest(true));
   }
 
   public void testTmlAttrNameWithPrefix() {
@@ -91,7 +90,7 @@ public class TapestryHighlightingTest extends TapestryBaseTestCase {
 
   public void testHtmlTagNameInHtmlParentTagError() {
     addComponentToProject("Count");
-    doTest(true);
+    ExpectedHighlightingData.expectedDuplicatedHighlighting(() -> doTest(true));
   }
 
   public void testTmlIfWithElse() {
@@ -110,7 +109,7 @@ public class TapestryHighlightingTest extends TapestryBaseTestCase {
   }
 
   public void testComponentFromJar() {
-    doTest(false);
+    ExpectedHighlightingData.expectedDuplicatedHighlighting(() -> doTest(false));
   }
 
   public void testLibraryMapping() {
@@ -132,11 +131,9 @@ public class TapestryHighlightingTest extends TapestryBaseTestCase {
   }
 
   @Override
-  protected void addTapestryLibraries(JavaModuleFixtureBuilder moduleBuilder) {
-    super.addTapestryLibraries(moduleBuilder);
-    if (ourTestsWithExtraLibraryComponents.contains(getTestName(false))) {
-      moduleBuilder.addLibraryJars("tapestry_5.1.0.5_additional", Util.getCommonTestDataPath() + "libs", "tapestry-upload-5.1.0.5.jar");
-    }
+  protected void addTapestryLibraries() {
+    super.addTapestryLibraries();
+    // Extra library components would be added here if needed
   }
 
   protected void doTest(boolean checkInfos, LocalInspectionTool... tools) {

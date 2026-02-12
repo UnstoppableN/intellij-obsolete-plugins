@@ -25,7 +25,7 @@ public class AddNewComponentActionTest extends BaseTestCase {
         Project projectMock = actionMockHelper.getProjectMock();
 
         TapestryProjectViewPane tapestryProjectViewPaneMock = getTapestryProjectViewPaneMock();
-        org.easymock.EasyMock.expect(tapestryProjectViewPaneMock.getSelectedNode()).andReturn(null);
+        org.easymock.EasyMock.expect(tapestryProjectViewPaneMock.getSelectedElement()).andReturn(null);
         expect(projectMock.getComponent(TapestryProjectViewPane.class)).andReturn(tapestryProjectViewPaneMock);
         org.easymock.EasyMock.replay(tapestryProjectViewPaneMock);
 
@@ -44,7 +44,7 @@ public class AddNewComponentActionTest extends BaseTestCase {
         expect(projectMock.isInitialized()).andReturn(false);
 
         TapestryProjectViewPane tapestryProjectViewPaneMock = getTapestryProjectViewPaneMock();
-        org.easymock.EasyMock.expect(tapestryProjectViewPaneMock.getSelectedNode()).andReturn(null);
+        org.easymock.EasyMock.expect(tapestryProjectViewPaneMock.getSelectedElement()).andReturn(null);
         expect(projectMock.getComponent(TapestryProjectViewPane.class)).andReturn(tapestryProjectViewPaneMock);
         org.easymock.EasyMock.replay(tapestryProjectViewPaneMock);
 
@@ -81,7 +81,7 @@ public class AddNewComponentActionTest extends BaseTestCase {
         expect(projectMock.isInitialized()).andReturn(false).anyTimes();
 
         TapestryProjectViewPane tapestryProjectViewPaneMock = getTapestryProjectViewPaneMock();
-        org.easymock.EasyMock.expect(tapestryProjectViewPaneMock.getSelectedNode()).andReturn(null);
+        org.easymock.EasyMock.expect(tapestryProjectViewPaneMock.getSelectedElement()).andReturn(null);
         expect(projectMock.getComponent(TapestryProjectViewPane.class)).andReturn(tapestryProjectViewPaneMock);
         org.easymock.EasyMock.replay(tapestryProjectViewPaneMock);
 

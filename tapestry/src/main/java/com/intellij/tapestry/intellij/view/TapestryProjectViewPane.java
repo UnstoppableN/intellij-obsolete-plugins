@@ -39,7 +39,8 @@ import com.intellij.tapestry.intellij.view.nodes.*;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.SimpleNode;
-import com.intellij.ui.treeStructure.SimpleTreeBuilder;
+import com.intellij.ui.tree.AsyncTreeModel;
+import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.treeStructure.actions.CollapseAllAction;
 import com.intellij.util.EditSourceOnDoubleClickHandler;
 import com.intellij.util.EditSourceOnEnterKeyHandler;
@@ -122,7 +123,8 @@ public class TapestryProjectViewPane extends AbstractProjectViewPane implements 
    */
   @Override
   public void addToolbarActions(@NotNull DefaultActionGroup defaultactiongroup) {
-    for (AnAction action : defaultactiongroup.getChildren(null)) {
+    AnAction[] children = defaultactiongroup.getChildren(ActionManager.getInstance());
+    for (AnAction action : children) {
       if (action.getTemplatePresentation().getText().equals("Autoscroll to Source")) {
         continue;
       }
@@ -238,7 +240,9 @@ public class TapestryProjectViewPane extends AbstractProjectViewPane implements 
   @Override
   @NotNull
   public ActionCallback updateFromRoot(boolean b) {
-    if (myTree != null) ((SimpleTreeBuilder)getTreeBuilder()).updateFromRoot(b);
+    if (myTree != null) {
+      myTree.updateUI();
+    }
     return ActionCallback.DONE;
   }//updateFromRoot
 
@@ -361,40 +365,35 @@ public class TapestryProjectViewPane extends AbstractProjectViewPane implements 
       return myProject;
     }
 
+    TreePath path = myTree != null ? myTree.getSelectionPath() : null;
+    if (path == null) return null;
+    
+    DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+    Object userObject = node.getUserObject();
+    
+    if (!(userObject instanceof SimpleNode)) return null;
+    SimpleNode simpleNode = (SimpleNode) userObject;
+    Object element = simpleNode.getElement();
+
     if (LangDataKeys.IDE_VIEW.is(dataId)) {
-      if (getSelectedDescriptor() == null) {
-        return null;
-      }
-
-      Object element = getSelectedDescriptor().getElement();
-
-      if (!(element instanceof PsiDirectory) && !(element instanceof PsiFile) ||
-          IdeaUtils.findFirstParent(getSelectedNode(), ExternalLibraryNode.class) != null) {
-        return null;
-      }
+      if (element == null) return null;
+      if (!(element instanceof PsiDirectory) && !(element instanceof PsiFile)) return null;
+      if (IdeaUtils.findFirstParent(node, ExternalLibraryNode.class) != null) return null;
       return myIdeView;
     }
 
     if (PlatformCoreDataKeys.MODULE.is(dataId)) {
-      final NodeDescriptor nodeDescriptor = getSelectedDescriptor();
-      if (nodeDescriptor != null) {
-        if (nodeDescriptor instanceof TapestryNode) {
-          return ((TapestryNode)nodeDescriptor).getModule();
-        }
-        if (nodeDescriptor instanceof ModuleNode) {
-          return ((ModuleNode)nodeDescriptor).getModule();
-        }
+      if (simpleNode instanceof TapestryNode) {
+        return ((TapestryNode)simpleNode).getModule();
+      }
+      if (simpleNode instanceof ModuleNode) {
+        return ((ModuleNode)simpleNode).getModule();
       }
     }
 
     if (CommonDataKeys.NAVIGATABLE.is(dataId)) {
-      if (getSelectedDescriptor() == null) {
-        return null;
-      }
-
-      if (getSelectedDescriptor().getElement() instanceof PresentationLibraryElement) {
-        return ((IntellijResource)((PresentationLibraryElement)getSelectedDescriptor().getElement()).getElementClass().getFile())
-            .getPsiFile();
+      if (element instanceof PresentationLibraryElement) {
+        return ((IntellijResource)((PresentationLibraryElement)element).getElementClass().getFile()).getPsiFile();
       }
     }
 
@@ -402,7 +401,7 @@ public class TapestryProjectViewPane extends AbstractProjectViewPane implements 
       return new SafeDeleteProvider();
     }
     if (PlatformCoreDataKeys.SELECTED_ITEM.is(dataId)) {
-      return getSelectedNode();
+      return node;
     }
     return null;
   }//getData
@@ -412,21 +411,18 @@ public class TapestryProjectViewPane extends AbstractProjectViewPane implements 
   }//getProject
 
   private void initTree() {
-    DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
-    DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+    myTreeStructure = new TapestryProjectTreeStructure(new RootNode(myProject));
+    StructureTreeModel structureModel = new StructureTreeModel(myTreeStructure, this);
+    AsyncTreeModel asyncModel = new AsyncTreeModel(structureModel, this);
 
-    myTree = new ProjectViewTree(treeModel) {
+    myTree = new ProjectViewTree(asyncModel) {
       public String toString() {
         return getTitle() + " " + super.toString();
       }
     };
 
-    setTreeBuilder(new TapestryViewTreeBuilder(myTree, myProject));
-    ((SimpleTreeBuilder)getTreeBuilder()).initRoot();
-
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
-    myTree.expandPath(new TreePath(myTree.getModel().getRoot()));
     TreeUtil.expandRootChildIfOnlyOne(myTree);
 
     myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
@@ -443,8 +439,6 @@ public class TapestryProjectViewPane extends AbstractProjectViewPane implements 
     addTreeListeners();
 
     new TreeSpeedSearch(myTree);
-
-    myTreeStructure = getTreeBuilder().getTreeStructure();
 
     myComponent = ScrollPaneFactory.createScrollPane(myTree);
     myComponent.setBorder(BorderFactory.createEmptyBorder());

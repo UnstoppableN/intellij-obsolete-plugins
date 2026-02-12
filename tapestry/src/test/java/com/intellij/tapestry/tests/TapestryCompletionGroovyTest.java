@@ -4,7 +4,6 @@
  */
 package com.intellij.tapestry.tests;
 
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,11 +34,9 @@ public class TapestryCompletionGroovyTest extends TapestryCompletionTest {
   }
 
   @Override
-  protected void addTapestryLibraries(JavaModuleFixtureBuilder moduleBuilder) {
-    super.addTapestryLibraries(moduleBuilder);
-    if (ourTestsWithExtraLibraryComponents.contains(getTestName(false))) {
-      moduleBuilder.addLibraryJars("tapestry_5.1.0.5_additional", Util.getCommonTestDataPath() + "libs", "tapestry-upload-5.1.0.5.jar");
-    }
+  protected void addTapestryLibraries() {
+    super.addTapestryLibraries();
+    // Extra library components would be added here if needed
   }
 
   public void testCompleteComponentFromLibrary() {

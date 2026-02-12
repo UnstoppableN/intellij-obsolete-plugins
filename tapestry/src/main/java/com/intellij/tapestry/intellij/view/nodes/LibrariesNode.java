@@ -2,7 +2,7 @@ package com.intellij.tapestry.intellij.view.nodes;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.tapestry.core.TapestryProject;
 import com.intellij.tapestry.core.model.TapestryLibrary;
@@ -15,8 +15,8 @@ import java.util.List;
 
 public class LibrariesNode extends TapestryNode {
 
-    public LibrariesNode(Module module, AbstractTreeBuilder treeBuilder) {
-        super(module, treeBuilder);
+    public LibrariesNode(Module module) {
+        super(module);
 
         init("Libraries", new PresentationData("Libraries", "Libraries", AllIcons.Nodes.PpLib, null));
     }
@@ -30,7 +30,7 @@ public class LibrariesNode extends TapestryNode {
 
         for (TapestryLibrary library : TapestryModuleSupportLoader.getTapestryProject(_module).getLibraries()) {
             if (!library.getId().equals(TapestryProject.APPLICATION_LIBRARY_ID)) {
-                children.add(new ExternalLibraryNode(library, _module, _treeBuilder));
+                children.add(new ExternalLibraryNode(library, _module));
             }
         }
 

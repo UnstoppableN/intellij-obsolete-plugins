@@ -8,9 +8,12 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +42,14 @@ public class TapestryIdeView implements IdeView {
     @Override
     @Nullable
     public PsiDirectory getOrChooseDirectory() {
-        Object element = _viewPane.getSelectedDescriptor().getElement();
+        TreePath path = _viewPane.getTree() != null ? _viewPane.getTree().getSelectionPath() : null;
+        if (path == null) return null;
+        
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+        Object userObject = node.getUserObject();
+        
+        if (!(userObject instanceof SimpleNode)) return null;
+        Object element = ((SimpleNode) userObject).getElement();
 
         if (element instanceof PsiDirectory) {
             return (PsiDirectory) element;

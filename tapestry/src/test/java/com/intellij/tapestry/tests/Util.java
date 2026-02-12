@@ -3,10 +3,8 @@ package com.intellij.tapestry.tests;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.tapestry.core.TapestryConstants;
-import com.intellij.testFramework.builders.WebModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -40,23 +38,25 @@ public final class Util {
   }
 
   public static IdeaProjectTestFixture getWebModuleFixture(String name) throws Exception {
-    TestFixtureBuilder<IdeaProjectTestFixture> fixtureBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(name);
-    WebModuleFixtureBuilder webBuilder = fixtureBuilder.addModule(WebModuleFixtureBuilder.class);
-    webBuilder.addContentRoot(new File("").getAbsoluteFile() + "/src/test/webModule");
-    webBuilder.addSourceRoot("src");
-    String jdkPath = System.getProperty("jdk.home");
-    if (jdkPath != null) {
-      webBuilder.addJdk(jdkPath);
-    }
-    webBuilder.addWebRoot(new File("").getAbsoluteFile() + "/src/test/webModule/resources", "/");
-    webBuilder.addWebRoot(new File("").getAbsoluteFile() + "/src/test/webModule/WEB-INF", "/WEB-INF");
-
-    IdeaProjectTestFixture webModuleFixture = fixtureBuilder.getFixture();
-    webModuleFixture.setUp();
-    return webModuleFixture;
+    IdeaProjectTestFixture fixture = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(name).getFixture();
+    fixture.setUp();
+    return fixture;
   }
 
   static String getCommonTestDataPath() {
-    return PathManager.getHomePath().replace(File.separatorChar, '/') + "/contrib/tapestry/tests/testData/";
+    // First try the project-relative path (standalone plugin)
+    String projectPath = System.getProperty("user.dir");
+    File testDataDir = new File(projectPath, "src/test/testData/");
+    if (testDataDir.exists()) {
+      return testDataDir.getAbsolutePath().replace(File.separatorChar, '/') + "/";
+    }
+    // Fallback: try relative to PathManager home (IntelliJ source tree)
+    String homePath = PathManager.getHomePath().replace(File.separatorChar, '/');
+    testDataDir = new File(homePath, "contrib/tapestry/tests/testData/");
+    if (testDataDir.exists()) {
+      return testDataDir.getAbsolutePath().replace(File.separatorChar, '/') + "/";
+    }
+    // Last resort: try community path
+    return homePath + "/contrib/tapestry/tests/testData/";
   }
 }

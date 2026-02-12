@@ -1,8 +1,6 @@
 package com.intellij.tapestry.intellij.facet;
 
 import com.intellij.facet.FacetConfiguration;
-import com.intellij.facet.frameworks.LibrariesDownloadAssistant;
-import com.intellij.facet.frameworks.beans.Artifact;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetEditorsFactory;
@@ -15,8 +13,6 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.tapestry.intellij.facet.ui.FacetEditor;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
-
-import java.net.URL;
 
 public final class TapestryFacetConfiguration implements FacetConfiguration {
   private String _filterName;
@@ -35,16 +31,8 @@ public final class TapestryFacetConfiguration implements FacetConfiguration {
   }
 
   public static LibraryInfo @NotNull [] getLibraryInfos(@NotNull String versionId) {
-    final Artifact version = LibrariesDownloadAssistant.findVersion(versionId, getUrl());
-
-    if (version != null) {
-      return LibrariesDownloadAssistant.getLibraryInfos(version);
-    }
+    // Library download assistant is deprecated - users should manually add Tapestry libraries
     return LibraryInfo.EMPTY_ARRAY;
-  }
-
-  private static URL getUrl() {
-    return TapestryFacetConfiguration.class.getResource("/libraries/tapestry.xml");
   }
 
   @Override
