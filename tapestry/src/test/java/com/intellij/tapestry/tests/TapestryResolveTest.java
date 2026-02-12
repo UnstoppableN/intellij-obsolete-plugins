@@ -305,6 +305,13 @@ public class TapestryResolveTest extends TapestryBaseTestCase {
     assertEquals("intFieldProp", ref.getName());
   }
 
+  public void testTapestryAttrCaseInsensitive() {
+    addComponentToProject("GridComponent");
+    initByComponent();
+    PsiField ref = resolveReferenceAtCaretPosition(PsiField.class);
+    assertEquals("gridModel", ref.getName());
+  }
+
   public void testTelSetterByProperty() {
     initByComponent();
     TapestryAccessorMethod ref = resolveReferenceAtCaretPosition(TapestryAccessorMethod.class);

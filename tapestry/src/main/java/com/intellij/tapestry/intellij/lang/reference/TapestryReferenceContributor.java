@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 public class TapestryReferenceContributor extends PsiReferenceContributor {
   private static class Holder {
@@ -48,6 +49,21 @@ public class TapestryReferenceContributor extends PsiReferenceContributor {
     };
   }
   private static final Key<XmlTag> TAG_KEY = Key.create("TAG_KEY");
+
+  @Nullable
+  private static TapestryParameter findParameterCaseInsensitive(Map<String, TapestryParameter> parameters, String name) {
+    // Try exact match first
+    TapestryParameter param = parameters.get(name);
+    if (param != null) return param;
+    
+    // Try case-insensitive match
+    for (Map.Entry<String, TapestryParameter> entry : parameters.entrySet()) {
+      if (entry.getKey().equalsIgnoreCase(name)) {
+        return entry.getValue();
+      }
+    }
+    return null;
+  }
 
   @Override
   public void registerReferenceProviders(@NotNull final PsiReferenceRegistrar registrar) {
@@ -143,7 +159,7 @@ public class TapestryReferenceContributor extends PsiReferenceContributor {
         if (!(parent instanceof XmlAttribute)) return PsiReference.EMPTY_ARRAY;
 
         final String localName = ((XmlAttribute)parent).getLocalName();
-        TapestryParameter parameter = component.getParameters().get(localName);
+        TapestryParameter parameter = findParameterCaseInsensitive(component.getParameters(), localName);
         if (parameter == null) return PsiReference.EMPTY_ARRAY;
 
         return localName.equals("page")

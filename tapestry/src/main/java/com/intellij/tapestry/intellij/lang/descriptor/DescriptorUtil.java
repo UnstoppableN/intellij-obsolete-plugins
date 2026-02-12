@@ -164,8 +164,14 @@ final class DescriptorUtil {
   public static XmlAttributeDescriptor getAttributeDescriptor(@NotNull String attributeName,
                                                               @Nullable ParameterReceiverElement component) {
     if (component == null) return null;
-    TapestryParameter param = component.getParameters().get(XmlUtil.findLocalNameByQualifiedName(attributeName));
-    return param == null ? null : new TapestryAttributeDescriptor(param);
+    String localName = XmlUtil.findLocalNameByQualifiedName(attributeName);
+    // Tapestry parameter names are case-insensitive
+    for (String paramName : component.getParameters().keySet()) {
+      if (paramName.equalsIgnoreCase(localName)) {
+        return new TapestryAttributeDescriptor(component.getParameters().get(paramName));
+      }
+    }
+    return null;
   }
 
   public static XmlElementDescriptor[] getTmlSubelementDescriptors(@NotNull XmlTag context, TapestryNamespaceDescriptor descriptor) {

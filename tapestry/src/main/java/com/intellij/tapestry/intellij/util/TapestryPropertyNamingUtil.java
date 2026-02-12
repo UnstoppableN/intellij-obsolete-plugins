@@ -73,11 +73,13 @@ public final class TapestryPropertyNamingUtil {
   private static String getPropertyNameFromGetter(@NotNull PsiMethod getter) {
     String methodName = getter.getName();
     int prefixLength = methodName.startsWith("get") ? "get".length() : "is".length();
-    return methodName.substring(prefixLength);
+    String propertyName = methodName.substring(prefixLength);
+    return com.intellij.openapi.util.text.StringUtil.decapitalize(propertyName);
   }
 
   private static String getPropertyNameFromSetter(@NotNull PsiMethod setter) {
-    return setter.getName().substring("set".length());
+    String propertyName = setter.getName().substring("set".length());
+    return com.intellij.openapi.util.text.StringUtil.decapitalize(propertyName);
   }
 
 
