@@ -69,7 +69,9 @@ public abstract class TelQualifiedReference implements PsiPolyVariantReference {
     final PsiManager manager = myElement.getManager();
     for (final ResolveResult result : multiResolve(false)) {
       final PsiElement target = result.getElement();
-      if (manager.areElementsEquivalent(element, target)) return true;
+      if (manager.areElementsEquivalent(element, target)) {
+        return true;
+      }
       if (target instanceof BeanPropertyElement && manager.areElementsEquivalent(element, ((BeanPropertyElement)target).getMethod())) {
         return true;
       }
@@ -145,7 +147,7 @@ public abstract class TelQualifiedReference implements PsiPolyVariantReference {
     if (project == null) return null;
     PresentationLibraryElement libraryElement = project.findElementByTemplate(file);
     if (libraryElement == null) return null;
-    return ((IntellijJavaClassType)libraryElement.getElementClass());
+    return (IntellijJavaClassType)libraryElement.getElementClass();
   }
 
   @Override

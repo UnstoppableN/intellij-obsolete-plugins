@@ -48,7 +48,7 @@ public class TelParser implements PsiParser {
             if("prop".equalsIgnoreCase(builder.getUserData(LAST_FOUND_IDENT))) {
               parseExpressionInner(builder);
             } else {
-              while (TAP5_EL_END != builder.getTokenType()) builder.advanceLexer();
+              parseBindingParameters(builder);
             }
           }
           finally {
@@ -213,6 +213,20 @@ public class TelParser implements PsiParser {
     while (consumeOptionalToken(builder, TAP5_EL_COMMA)) {
       if (!parseExpressionInner(builder)) {
         builder.error("expression expected");
+      }
+    }
+  }
+
+  private static void parseBindingParameters(PsiBuilder builder) {
+    while (TAP5_EL_END != builder.getTokenType() && !builder.eof()) {
+      if (TAP5_EL_IDENTIFIER == builder.getTokenType()) {
+        parsePropertyChainExpression(builder);
+        if (builder.getTokenType() == TAP5_EL_BAD_CHAR && "=".equals(builder.getTokenText())) {
+          builder.advanceLexer();
+          parsePropertyChainExpression(builder);
+        }
+      } else {
+        builder.advanceLexer();
       }
     }
   }

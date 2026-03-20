@@ -1,17 +1,30 @@
 package com.intellij.tapestry.intellij.editorActions;
 
+import com.intellij.lang.cacheBuilder.DefaultWordsScanner;
+import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.tree.TokenSet;
 import com.intellij.tapestry.TapestryBundle;
+import com.intellij.tapestry.psi.TelLexer;
+import com.intellij.tapestry.psi.TelTokenTypes;
+import com.intellij.tapestry.psi.TmlLexer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Alexey Chmutov
  */
 public class TmlFindUsagesProvider implements FindUsagesProvider {
+
+  @Override
+  @Nullable
+  public WordsScanner getWordsScanner() {
+    return null;
+  }
 
   @Override
   public boolean canFindUsagesFor(@NotNull final PsiElement psiElement) {

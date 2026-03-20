@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.intellij"
-version = "253.0.0"  // Matches IntelliJ 2025.3 (build 253)
+version = "253.1.0"  // Matches IntelliJ 2025.3 (build 253)
 
 // Required repositories for IntelliJ Platform Gradle Plugin 2.x
 repositories {
@@ -25,8 +25,7 @@ intellijPlatform {
   pluginConfiguration {
     // IDE version compatibility range
     ideaVersion {
-      sinceBuild = "243"      // Minimum: IntelliJ 2024.3
-      untilBuild = "253.*"    // Maximum: All 2025.3.x releases
+      sinceBuild = "253"      // Minimum: IntelliJ 2025.3
     }
   }
   
@@ -47,8 +46,8 @@ sourceSets.getByName("main") {
 dependencies {
   // IntelliJ Platform dependencies
   intellijPlatform {
-    // Target IDE: IntelliJ IDEA Ultimate 2025.3
-    create("IU", "2025.3")
+    // Target IDE: IntelliJ IDEA 2025.3 (unified distribution)
+    intellijIdea("2025.3")
     
     // Required bundled plugins (must be explicitly declared in Plugin 2.x)
     bundledPlugin("com.intellij.java")        // Java PSI support (PsiClass, PsiMethod, etc.)
@@ -65,9 +64,6 @@ dependencies {
     
     // Plugin verifier for compatibility checking
     pluginVerifier()
-    
-    // Code instrumentation tools (required for plugin development)
-    instrumentationTools()
   }
 
   // Runtime dependencies
@@ -86,8 +82,8 @@ dependencies {
 tasks {
   // Java compilation settings
   withType<JavaCompile> {
-    sourceCompatibility = "17"
-    targetCompatibility = "17"
+    sourceCompatibility = "21"
+    targetCompatibility = "21"
   }
   
   // Use JUnit as primary test framework
